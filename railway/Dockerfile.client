@@ -1,0 +1,30 @@
+FROM --platform=linux/amd64 node:24-slim AS builder
+
+ENV WASP_TELEMETRY_CONTEXT="railway-open-saas"
+
+# This will set the public railway domain for the client as the user id
+ARG WASP_TELEMETRY_USER_ID
+ENV WASP_TELEMETRY_USER_ID=$WASP_TELEMETRY_USER_ID
+
+RUN npm i -g @wasp.sh/wasp-cli@0.23
+
+WORKDIR /app
+
+COPY ./app /app
+
+RUN wasp build
+
+ARG REACT_APP_API_URL
+
+RUN REACT_APP_API_URL=$REACT_APP_API_URL npx vite build
+
+FROM caddy
+
+# Remove Caddy placeholder
+RUN rm -rf /usr/share/caddy/*
+
+COPY --from=builder /app/.wasp/out/web-app/build /usr/share/caddy
+
+COPY ./railway/Caddyfile /etc/caddy/Caddyfile
+
+EXPOSE 8080
