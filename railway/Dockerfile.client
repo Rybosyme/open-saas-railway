@@ -18,6 +18,10 @@ ARG REACT_APP_API_URL
 
 RUN REACT_APP_API_URL=$REACT_APP_API_URL npx vite build
 
+RUN ls -la /app/.wasp/out/web-app
+RUN ls -la /app/.wasp/out/web-app/build || true
+RUN ls -la /app/.wasp/out/web-app/dist || true
+
 FROM caddy
 
 # Remove Caddy placeholder
